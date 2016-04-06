@@ -1,0 +1,5 @@
+Pawel Czarnul    (pczarnul@eti.pg.gda.pl)     files under examples/2Dmapsearch.
+Piotr Dorozynski (piotr.dorozynski@pg.gda.pl) first version of all Makefile.am scripts, configure.ac, README and init_error_codes function from src/file_io_pmem.c.
+Artur Malinowski (artur.malinowski@pg.gda.pl) all files except changes mentioned above.
+
+Note: files in m4 directory are m4 macros downloaded from http://www.gnu.org/software/autoconf-archive are distributed under the terms of the GNU General Public License version 3 as published by the Free Software Foundation.

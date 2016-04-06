@@ -1,0 +1,15 @@
+1. Installation
+First create configure script and other things needed by autoconf and automake by running:
+	autoreconf -i
+
+Now you can configure project by running:
+	./configure
+	
+Configuration script should find proper C and C++ compilers for MPI itself (if they are in a PATH), but if not you can set them by providing CC=<path to mpicc> e.g.
+	./configure CC=<path to mpicc>
+
+Now build project by running:
+	make
+
+If you wish you may install dynamic library and examples by running:
+	make install

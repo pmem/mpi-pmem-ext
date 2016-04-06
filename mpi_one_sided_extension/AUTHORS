@@ -1,0 +1,9 @@
+Piotr Dorozynski (piotr.dorozynski@pg.gda.pl) first version of all files in examples, src and test except files in examples/HPCCG, src/common/logger.c, src/common/logger.h, src/common/util.c, src/common/util.h,
+                                              plus first version of files configure.ac, Makefile.am and README,
+                                              plus changes in the following files in examples/HPCCG directory: exchange_externals.cpp, exchange_externals.hpp, HPC_SparseMatrix.cpp, HPC_SparseMatrix.hpp, HPCCG.cpp, HPCCG.hpp, make_local_matrix.cpp, Makefile,
+                                              plus new files in examples/HPCCG directory: HPCCG_checkpoint_disk.cpp, HPCCG_checkpoint_double_buffered.cpp, HPCCG_Checkpoint_pmem.cpp as modifications of HPCCG.cpp file,
+                                              plus changes in src/common/logger.c and src/common/logger.h.
+Artur Malinowski (artur.malinowski@pg.gda.pl) first version of files src/common/logger.c, src/common/logger.h, src/common/util.c, src/common/util.h.
+
+Note: files in m4 directory are m4 macros downloaded from http://www.gnu.org/software/autoconf-archive and are distributed under the terms of the GNU General Public License version 3 as published by the Free Software Foundation.
+Note: files in examples/HPCCG are part of HPCCG: Simple Conjugate Gradient Benchmark Code and are distributed under the terms of the GNU Lesser General Public License version 2.1 as published by the Free Software Foundation.

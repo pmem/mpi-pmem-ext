@@ -1,0 +1,47 @@
+Configuration and running one-sided part:
+1. Install Rocks cluster 6.1.1 (it installs CentOS release 6.5).
+2. Install libpmem (in Rocks it may be installed automatically to all compute nodes by creating RPM package and reinstalling nodes: http://central6.rocksclusters.org/roll-documentation/base/6.1.1/customization-adding-packages.html - you may want to "merge" this step with step 3 in order to make only one reinstall) and other needed libraries (we needed gcc-c++, autoconf, automake, libtool; these packages are available in rocks distribution, you only need to add them as <package>package-name</package> to extend-compute.xml).
+3. Compile kernel with DAX support (we used version from branch pmem_dax_v3.18-rc1: https://github.com/01org/prd/tree/pmem_dax_v3.18-rc1 ) and run compute nodes from it (in Rocks it may be done by compiling kernel to RPM and reinstalling compute nodes: see http://central6.rocksclusters.org/roll-documentation/base/6.1.1/customization-kernel.html ).
+4. Install MPI implementation (we used MPICH 3.1.4 - as a reference MPI implementation and MVAPICH 2.1 - as an extension to MPICH in order to support InfiniBand). In Rocks you may want to install it to /share/apps so it will be shared with all compute nodes: http://central6.rocksclusters.org/roll-documentation/base/6.1.1/customization-adding-applications.html .
+5. Install OneSided part (execute following commands from mpi_one_sided_extension directory):
+5a. First create configure script and other things needed by autoconf and automake by running:
+	autoreconf -i
+
+5b. Now you can configure project by running (you may add --prefix=<path> parameter in order to specify where library should be installed in step 6f):
+	./configure
+	
+5c. Configuration script should find proper C and C++ compilers for MPI itself (if they are in a PATH), but if not you can set them by providing CC=<path to mpicc> or CXX=<path to mpic++> e.g.
+	./configure CC=<path to mpicc> CXX=<path to mpic++>
+
+5d. Now build project by running:
+	make
+
+5f. If you wish you may install dynamic library and examples by running:
+	make install
+
+5g. You may run unit tests by running (<pmem-root-path> should be substituted by path to a folder in pmem where test files will reside) on a compute node:
+	LOG_FLAGS=<pmem-root-path> make check
+
+NOTE: In order to execute tests properly 'mpiexec' must be on system PATH (or you may specify it by adding MPIEXEC=<path to mpiexec> to the above command e.g. MPIEXEC=<path to mpiexec> LOG_FLAGS=<pmem-root-path> make check) and MPI implementation must return error codes from processes when run via mpiexec.
+
+If any test fails you may check test log located at test/test-suite.log
+
+There may be a case with running test script. If you get an access error to file mpiexec-test check if you have permission to execute the file. You can solve this issue by adding execute access to a file by running:
+	chmod +x test/mpiexec-test
+
+6. Make sure <prefix-path> (i.e. place where library and examples were installed) is available from all compute nodes.
+7. Create <machinefile> containing names of used nodes.
+8. Running HPCCG:
+8a. Basic implementation - <checkpoint-directory> and start|restart doesn't matter for this implementation
+<path to mpiexec> -machinefile <machinefile> -n <processes-count> <prefix-path>/bin/HPCCG <nx> <ny> <nz> <checkpoint-directory> start|restart
+
+8b. Implementation with checkpointing on disk - start is used when application should start from the beginning and restart is used when application should restart from checkpoint
+<path to mpiexec> -machinefile <machinefile> -n <processes-count> <prefix-path>/bin/HPCCG_checkpoint_disk <nx> <ny> <nz> <checkpoint-directory> start|restart
+
+8c. Implementation with checkpointing done using proposed extensions - start is used when application should start from the beginning and restart is used when application should restart from checkpoint
+<path to mpiexec> -machinefile <machinefile> -n <processes-count> <prefix-path>/bin/HPCCG_checkpoint_pmem <nx> <ny> <nz> <checkpoint-directory> start|restart
+
+8d. Implementation with checkpointing done in double buffered scheme in pmem - start is used when application should start from the beginning and restart is used when application should restart from checkpoint
+<path to mpiexec> -machinefile <machinefile> -n <processes-count> <prefix-path>/bin/HPCCG_checkpoint_double_buffered <nx> <ny> <nz> <checkpoint-directory> start|restart
+
+NOTE: When using MVAPICH add MV2_ENABLE_AFFINITY=0 at the beginning of the command in order to enable support for MPI_THREAD_MULTIPLE.

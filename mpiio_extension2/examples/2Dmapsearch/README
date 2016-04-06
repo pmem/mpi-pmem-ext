@@ -1,0 +1,78 @@
+
+What is this code?
+------------------
+
+This is a parallel application that searches a 2D map looking for
+certain objects (meeting certain criteria). If an object is found then
+its immediate surrounding is searched for similar items. 
+This may denote e.g. existence of certain field of plants growing in an
+area etc. The application returns the maximum number of items in such regions.
+Conditionals may easily be modified for finding any other dependencies. 
+
+It should be noted that the application uses a file as a representation
+of the 2D map. Furthermore, each cell on the map has a byte representation.
+
+The application uses the MPI File I/O for reading the map.
+It partitions the map among processes for parallel computations.
+While reading the file using individual bytes may seem inefficient
+in a standard setting, the application is meant to demonstrate
+benefits of the extended MPI I/O with pmem in which case
+byte level access and performance should be beneficial and should 
+allow to regard a file as a large sized shared memory on a cluster
+with byte level access.
+
+How to compile the application?
+-------------------------------
+
+mpicc 2Dmapsearch-MPIIO.c -lm -lpmem -lmpi-pmem-io
+
+How to prepare input data?
+--------------------------
+
+For testing, it may be enough to generate a file with random contents through e.g.
+dd if=/dev/urandom of=a.test bs=1M count=2
+
+
+How to run the application?
+---------------------------
+
+Syntax: mpirun -np proc_number 2Dmapsearch-MPIIO <map_filename> mapxsize mapysize processes_in_x_dim processes_in_y_dim
+
+proc_number - the number of processes started
+mapxsize, mapysize -- sizes of the map in cells
+processes_in_x_dim, processes_in_y_dim -- how many processes cut the map in each dimension
+
+Conditions:
+
+1) processes_in_x_dim*processes_in_y_dim should be equal to proc_number
+2) mapxsize*mapysize should fit into the file i.e. the file should contain at least as many bytes
+
+Sample runs
+-----------
+
+On a 2-core system (with HT)
+
+time mpirun -np 1 ./a.out a.test 1000 1000 1 1
+
+The final similarity is 62.000000
+
+real	0m29.429s
+user	0m11.492s
+sys	0m17.952s
+time mpirun -np 4 ./a.out a.test 1000 1000 2 2
+
+The final similarity is 62.000000
+
+real	0m14.734s
+user	0m23.560s
+sys	0m34.416s
+time mpirun -np 8 ./a.out a.test 1000 1000 4 2
+
+The final similarity is 62.000000
+
+real	0m15.280s
+user	0m25.104s
+sys	0m35.280s
+
+
+

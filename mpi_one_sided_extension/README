@@ -1,0 +1,26 @@
+1. Installation
+First create configure script and other things needed by autoconf and automake by running:
+	autoreconf -i
+
+Now you can configure project by running:
+	./configure
+	
+Configuration script should find proper C and C++ compilers for MPI itself (if they are in a PATH), but if not you can set them by providing CC=<path to mpicc> or CXX=<path to mpic++> e.g.
+	./configure CC=<path to mpicc> CXX=<path to mpic++>
+
+Now build project by running:
+	make
+
+If you wish you may install dynamic library and examples by running:
+	make install
+
+2. Testing
+You may run unit tests by running (<pmem-root-path> should be substituted by path to a folder in pmem where test files will reside):
+	LOG_FLAGS=<pmem-root-path> make check
+
+NOTE: In order to execute tests properly 'mpiexec' must be on system PATH (or you may specify it via MPIEXEC environment variable) and MPI implementation must return error codes from processes when run via mpiexec.
+
+If any test fails you may check test log located at test/test-suite.log
+
+There may be a case with running test script. If you get an access error to file mpiexec-test check if you have permission to execute the file. You can solve this issue by adding execute access to a file by running:
+	chmod +x test/mpiexec-test
