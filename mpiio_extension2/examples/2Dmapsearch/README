@@ -4,9 +4,10 @@ What is this code?
 
 This is a parallel application that searches a 2D map looking for
 certain objects (meeting certain criteria). If an object is found then
-its immediate surrounding is searched for similar items. 
+(part of) its immediate surrounding is searched for similar items. 
 This may denote e.g. existence of certain field of plants growing in an
-area etc. The application returns the maximum number of items in such regions.
+area or spreading during wind etc. The application returns the maximum 
+number of items in such regions.
 Conditionals may easily be modified for finding any other dependencies. 
 
 It should be noted that the application uses a file as a representation

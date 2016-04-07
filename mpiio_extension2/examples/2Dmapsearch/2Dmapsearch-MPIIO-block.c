@@ -25,7 +25,6 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -40,6 +39,17 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define SURROUNDING_RADIUS 4
 #define HOW_MANY_TO_SEARCH_FOR_IN_SURROUNDING 4
 
+// this version allows reading from a file using a block
+
+// parameters for a buffer for block reading
+#define BLOCK_SIZE 512
+char block_buffer[BLOCK_SIZE];
+long long buffer_start_offset=0;
+long long buffer_end_offset=0;
+int block_read=0; // 1 if a block was read at least once
+
+//int read_counter=0;
+
 char get_xy_cell(long long x,long long y,MPI_File file,long long mapxsize,long long mapysize) { // get the value of a cell from a file
 
   char temp;
@@ -47,10 +57,38 @@ char get_xy_cell(long long x,long long y,MPI_File file,long long mapxsize,long l
 
   MPI_Offset offset=y*mapxsize+x; // this is the location in the file to read from
 
-  MPI_File_read_at(file,offset,&temp,1,MPI_CHAR,&status);
+  // first check if the cell is in the buffer
+  if ((!block_read) || (offset<buffer_start_offset) || (offset>buffer_end_offset)) { // need to read a block
+
+    MPI_Offset last_map_offset=mapysize*mapxsize-1;
+    int charstoread=(((offset+BLOCK_SIZE)>last_map_offset)?(last_map_offset-offset+1):BLOCK_SIZE);
+
+    buffer_start_offset=offset;
+    buffer_end_offset=buffer_start_offset+charstoread-1;
+
+    //        printf("%d x=%d y=%d Reading %d bytes starting at offset %d start=%d end=%d\n",read_counter,(int)x,(int)y,charstoread,(int)offset,(int)buffer_start_offset,(int)buffer_end_offset);
+    //        read_counter++;
+
+    MPI_File_read_at(file,offset,&block_buffer,charstoread,MPI_CHAR,&status);
+
+    block_read=1;
+  }// else printf("\nin buffer");
+
+  // now simply return the cell value from the buffer
  
-  return temp;
+  return block_buffer[offset-buffer_start_offset];
 }
+
+void set_xy_cell(long long x,long long y,MPI_File file,long long mapxsize,long long mapysize,char val) {
+
+  MPI_Status status;
+  
+  MPI_Offset offset=y*mapxsize+x; // this is the location in the file to read from
+  
+  MPI_File_write_at(file,offset,&val,1,MPI_CHAR,&status);
+
+}
+
 
 double eval_surrounding(long long x,long long y,MPI_File file,long long mapxsize,long long mapysize) { // evaluate if there are at least a
   // HOW_MANY_TO_SEARCH_FOR_IN_SURROUNDING number of similar objects in the surrounding starting from the center
@@ -106,6 +144,7 @@ double eval_surrounding(long long x,long long y,MPI_File file,long long mapxsize
   }
   */
 
+  
   for(i=1;i<SURROUNDING_RADIUS;i++) {
     for(j=-i+1;j<i;j++) {
       if (((x+j)<mapxsize) && ((x+j)>=0) && ((y+i-j)>=0) && ((y+i-j)<mapysize)) {
@@ -118,6 +157,7 @@ double eval_surrounding(long long x,long long y,MPI_File file,long long mapxsize
     }
     if (numberofitemsfound>=HOW_MANY_TO_SEARCH_FOR_IN_SURROUNDING) break;
   }
+  
 
   return numberofitemsfound;
 
@@ -237,13 +277,16 @@ int main(int argc,char **argv) {
 
   my_similarity=0;
 
-  for(x=myxmin;x<myxmax;x++)
-    for(y=myymin;y<myymax;y++) {
+  for(y=myymin;y<myymax;y++) 
+    for(x=myxmin;x<myxmax;x++) {
+
       
       cell_val=get_xy_cell(x,y,file,mapxsize,mapysize);
-      if ((cell_val>=CELL_VAL_LOW_THRESHOLD) && (cell_val<=CELL_VAL_HIGH_THRESHOLD))
+      if ((cell_val>=CELL_VAL_LOW_THRESHOLD) && (cell_val<=CELL_VAL_HIGH_THRESHOLD)) {
 	my_temp_similarity=eval_surrounding(x,y,file,mapxsize,mapysize);
-      
+	//set_xy_cell(x,y,file,mapxsize,mapysize,0); // set a value to 0 to mark the location
+      }      
+
       if (my_temp_similarity>=my_similarity)
 	my_similarity=my_temp_similarity;
       
